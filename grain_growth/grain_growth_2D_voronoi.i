@@ -7,7 +7,7 @@
 
 [Mesh]
   # Mesh block.  Meshes can be read in or automatically generated
-  type = GeneratedMesh
+  type = GeneratedMesh # 网格生成器
   dim = 2 # Problem dimension
   nx = 12 # Number of elements in the x-direction
   ny = 12 # Number of elements in the y-direction
