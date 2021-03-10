@@ -34,8 +34,15 @@
 [UserObjects]
   [./voronoi]
     type = PolycrystalVoronoi
+    # The PolycrystalVoronoi UserObject either generates a set of random points or reads a set of 
+    # grain centroids from a file and performs a Voronoi tesslation to produce a grain structure.
+    # 2D:8,3D:25
     grain_num = 100 # Number of grains
     rand_seed = 10
+    # The random seed
+    # file_name = 
+    # File containing grain centroids, if file_name is provided, the centroids from the file will be used.
+    # int_width = 5.0 # test,Width of diffuse interfaces
   [../]
   [./grain_tracker]
     type = GrainTracker
@@ -51,6 +58,7 @@
   [./PolycrystalICs]
     [./PolycrystalColoringIC]
       polycrystal_ic_uo = voronoi
+      # <--UserObjects\voronoi
     [../]
   [../]
 []
@@ -82,6 +90,11 @@
   # Kernel block, where the kernels defining the residual equations are set up.
   [./PolycrystalKernel]
     # Custom action creating all necessary kernels for grain growth.  All input parameters are up in GlobalParams
+    # <--PolycrystalKernelAction,Set up ACGrGrPoly, ACInterface, TimeDerivative, and ACGBPoly kernels
+    # ACGrGrPoly,see PolycrystalKernelAction.JPG
+    # ACInterface
+    # TimeDerivative
+    # ACGBPoly,'ACGBPoly' is used only when there are bubbles in the grain-growth simulations. If there are no bubbles, this kernel is not set by the action.
   [../]
 []
 
@@ -95,6 +108,7 @@
   [../]
   [./unique_grains]
     type = FeatureFloodCountAux
+    # Feature detection by connectivity analysis
     variable = unique_grains
     # <--AuxVariables\unique_grains
     flood_counter = grain_tracker
@@ -140,10 +154,15 @@
     # Material properties
     type = GBEvolution
     T = 450 # Constant temperature of the simulation (for mobility calculation)
+    # GBEvolutionBase:Computes necessary material properties for the isotropic grain growth model
     wGB = 14 # Width of the diffuse GB
-    GBmob0 = 2.5e-6 #m^4(Js) for copper from Schoenfelder1997
-    Q = 0.23 #eV for copper from Schoenfelder1997
+    GBmob0 = 2.5e-6 # m^4(Js) for copper from Schoenfelder1997,Grain boundary mobility prefactor
+    Q = 0.23 #eV for copper from Schoenfelder1997,Grain boundary migration activation energy
     GBenergy = 0.708 #J/m^2 from Schoenfelder1997
+    # length_scale = 1.0e-9 # Length scale in m, where default is nm
+    # time_scale = 1.0e-9 # Time scale in s, where default is ns"
+    # GBMobility = -1 # GB mobility input in m^4/(J*s), that overrides the temperature dependent calculation
+    # molar_volume = 24.62e-6 # m^3/mol, needed for temperature gradient driving force
   [../]
 []
 
@@ -190,10 +209,29 @@
 []
 
 [Outputs]
-  exodus = true # Exodus file will be outputted
-  csv = true
+  file_base = poly1000_graintracker
+  [./csv]
+    type = CSV
+    interval = 8
+  [../]
+  [./exodus]
+    type = Exodus
+    interval = 16
+  [../]
   [./console]
     type = Console
     max_rows = 20 # Will print the 20 most recent postprocessor values to the screen
   [../]
+  [out]
+    type = Checkpoint
+    interval = 10
+    num_files = 6
+  []
+  [pgraph]
+    type = PerfGraphOutput
+    execute_on = 'initial final'  # Default is "final"
+    level = 2                     # Default is 1
+    heaviest_branch = true        # Default is false
+    heaviest_sections = 7         # Default is 0
+  []
 []
