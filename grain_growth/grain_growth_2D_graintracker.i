@@ -1,46 +1,49 @@
-# This simulation predicts GB migration of a 2D copper polycrystal with 15 grains
+# This simulation predicts GB migration of a 2D copper polycrystal with 100 grains represented with 18 order parameters
 # Mesh adaptivity and time step adaptivity are used
 # An AuxVariable is used to calculate the grain boundary locations
 # Postprocessors are used to record time step and the number of grains
-# We are not using the GrainTracker in this example so the number
-# of order paramaters must match the number of grains.
-# /moose/modules/phase_field/examples/grain_growth
-
 
 [Mesh]
   # Mesh block.  Meshes can be read in or automatically generated
-  type = GeneratedMesh # 网格生成器
+  type = GeneratedMesh
   dim = 2 # Problem dimension
-  nx = 12 # Number of elements in the x-direction
-  ny = 12 # Number of elements in the y-direction
-  nz = 0 # Number of elements in the z-direction
+  nx = 11 # Number of elements in the x-direction
+  ny = 11 # Number of elements in the y-direction
   xmin = 0    # minimum x-coordinate of the mesh
   xmax = 1000 # maximum x-coordinate of the mesh
   ymin = 0    # minimum y-coordinate of the mesh
   ymax = 1000 # maximum y-coordinate of the mesh
-  zmin = 0
-  zmax = 0
-  elem_type = QUAD4 # Type of elements used in the mesh
-  uniform_refine = 3 # Initial uniform refinement of the mesh，4^3=64
-  # initial number of element = 12*12*4^3
+  elem_type = QUAD4  # Type of elements used in the mesh
+  uniform_refine = 3 # Initial uniform refinement of the mesh
 
   parallel_type = replicated # Periodic BCs
 []
 
 [GlobalParams]
   # Parameters used by several kernels that are defined globally to simplify input file
-  op_num = 15 # Number of grains
+  op_num = 8 # Number of order parameters used
   var_name_base = gr # Base name of grains
+[]
+
+[Variables]
+  # Variable block, where all variables in the simulation are declared
+  [./PolycrystalVariables]
+  [../]
 []
 
 [UserObjects]
   [./voronoi]
     type = PolycrystalVoronoi
-    # either generates a set of random points or reads a set of grain centroids from a file 
-    # and performs a Voronoi tesslation to produce a grain structure. 
-    grain_num = 15
-    rand_seed = 42
-    coloring_algorithm = bt # We must use bt to force the UserObject to assign one grain to each op
+    grain_num = 100 # Number of grains
+    rand_seed = 10
+  [../]
+  [./grain_tracker]
+    type = GrainTracker
+    # The Grain Tracker is a utility that may be used in phase-field 
+    # simulations to reduce the number of order parameters needed to model a large polycrystal system. 
+    threshold = 0.2
+    connecting_threshold = 0.08
+    compute_halo_maps = true # Only necessary for displaying HALOS
   [../]
 []
 
@@ -48,50 +51,79 @@
   [./PolycrystalICs]
     [./PolycrystalColoringIC]
       polycrystal_ic_uo = voronoi
-      # <--UserObjects/voronoi
-      # BicrystalBoundingBoxIC,BicrystalCircleGrainIC,PolycrystalColoringIC,
-      # PolycrystalRandomIC,PolycrystalVoronoiVoidIC,Tricrystal2CircleGrainsIC
     [../]
   [../]
 []
 
-[Variables]
-  # Variable block, where all variables in the simulation are declared
-  [./PolycrystalVariables]
-    # Custom action that created all of the grain variables
-    order = FIRST # element type used by each grain variable
-    family = LAGRANGE
-  [../]
-[]
-
 [AuxVariables]
-#active = ''
   # Dependent variables
   [./bnds]
     # Variable used to visualize the grain boundaries in the simulation
-    order = FIRST
-    family = LAGRANGE
   [../]
+  [./unique_grains]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  [./var_indices]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  # [./ghost_regions]
+  #   order = CONSTANT
+  #   family = MONOMIAL
+  # [../]
+  # [./halos]
+  #   order = CONSTANT
+  #   family = MONOMIAL
+  # [../]
 []
 
 [Kernels]
   # Kernel block, where the kernels defining the residual equations are set up.
   [./PolycrystalKernel]
     # Custom action creating all necessary kernels for grain growth.  All input parameters are up in GlobalParams
-    # ……
   [../]
 []
 
 [AuxKernels]
-#active = ''
   # AuxKernel block, defining the equations used to calculate the auxvars
   [./bnds_aux]
     # AuxKernel that calculates the GB term
     type = BndsCalcAux
     variable = bnds
-    # <--AuxVariables\bnds
-    execute_on = timestep_end
+    execute_on = 'initial timestep_end'
   [../]
+  [./unique_grains]
+    type = FeatureFloodCountAux
+    variable = unique_grains
+    # <--AuxVariables\unique_grains
+    flood_counter = grain_tracker
+    # <--UserObjects\grain_tracker
+    field_display = UNIQUE_REGION
+    # UNIQUE_REGION VARIABLE_COLORING GHOSTED_ENTITIES HALOS CENTROID ACTIVE_BOUNDS
+    execute_on = 'initial timestep_end'
+  [../]
+  [./var_indices]
+    type = FeatureFloodCountAux
+    variable = var_indices
+    flood_counter = grain_tracker
+    field_display = VARIABLE_COLORING
+    execute_on = 'initial timestep_end'
+  [../]
+  # [./ghosted_entities]
+  #   type = FeatureFloodCountAux
+  #   variable = ghost_regions
+  #   flood_counter = grain_tracker
+  #   field_display = GHOSTED_ENTITIES
+  #   execute_on = 'initial timestep_end'
+  # [../]
+  # [./halos]
+  #   type = FeatureFloodCountAux
+  #   variable = halos
+  #   flood_counter = grain_tracker
+  #   field_display = HALOS
+  #   execute_on = 'initial timestep_end'
+  # [../]
 []
 
 [BCs]
@@ -106,25 +138,16 @@
 [Materials]
   [./CuGrGr]
     # Material properties
-    type = GBEvolution # Quantitative material properties for copper grain growth.  Dimensions are nm and ns
-    # GBEvolutionBase……
-    GBmob0 = 2.5e-6 # Mobility prefactor for Cu from Schonfelder1997
-    # Grain boundary mobility prefactor m^4/(J*s)
-
-    GBenergy = 0.708 # GB energy for Cu from Schonfelder1997
-    # Grain boundary energy  J/m^2
-
-    Q = 0.23 # Activation energy for grain growth from Schonfelder 1997
-    # Grain boundary migration activation energy in eV
-
-    T = 450 # K   #Constant temperature of the simulation (for mobility calculation)
-    wGB = 14 # nm      #Width of the diffuse GB
-    # Diffuse GB width in the length scale of the model
+    type = GBEvolution
+    T = 450 # Constant temperature of the simulation (for mobility calculation)
+    wGB = 14 # Width of the diffuse GB
+    GBmob0 = 2.5e-6 #m^4(Js) for copper from Schoenfelder1997
+    Q = 0.23 #eV for copper from Schoenfelder1997
+    GBenergy = 0.708 #J/m^2 from Schoenfelder1997
   [../]
 []
 
 [Postprocessors]
-  active = 'dt '
   # Scalar postprocessors
   [./dt]
     # Outputs the current time step
@@ -139,14 +162,14 @@
   #Preconditioned JFNK (default)
   solve_type = 'PJFNK'
 
+  # Uses newton iteration to solve the problem.
   petsc_options_iname = '-pc_type -pc_hypre_type -ksp_gmres_restart -mat_mffd_type'
-  petsc_options_value = 'hypre    boomeramg      101                ds'
+  petsc_options_value = 'hypre boomeramg 101 ds'
 
   l_max_its = 30 # Max number of linear iterations
   l_tol = 1e-4 # Relative tolerance for linear solves
   nl_max_its = 40 # Max number of nonlinear iterations
-  nl_abs_tol = 1e-11 # Relative tolerance for nonlienar solves
-  nl_rel_tol = 1e-8 # Absolute tolerance for nonlienar solves
+  nl_rel_tol = 1e-10 # Absolute tolerance for nonlienar solves
 
   start_time = 0.0
   end_time = 4000
@@ -154,7 +177,7 @@
   [./TimeStepper]
     type = IterationAdaptiveDT
     dt = 25 # Initial time step.  In this simulation it changes.
-    optimal_iterations = 6 #Time step will adapt to maintain this number of nonlinear iterations
+    optimal_iterations = 6 # Time step will adapt to maintain this number of nonlinear iterations
   [../]
 
   [./Adaptivity]
@@ -167,10 +190,10 @@
 []
 
 [Outputs]
-  exodus = true
+  exodus = true # Exodus file will be outputted
   csv = true
   [./console]
     type = Console
-    max_rows = 20
+    max_rows = 20 # Will print the 20 most recent postprocessor values to the screen
   [../]
 []
