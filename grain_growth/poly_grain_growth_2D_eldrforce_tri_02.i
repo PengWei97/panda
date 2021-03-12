@@ -47,9 +47,7 @@
     execute_on = 'initial timestep_begin'
     flood_entity_type = ELEMENTAL
 
-    # C_ijkl = '1.27e5 0.708e5 0.708e5 1.27e5 0.708e5 1.27e5 0.7355e5 0.7355e5 0.7355e5' # copper
-    C_ijkl = '1.94e5 0.655e5 0.698e5 1.94e5 0.698e5 1.98e5 0.4627e5 0.4627e5 0.6435e5' # Titanium,2,0Pa，可行
-    # C_ijkl = '1.94305e5 0.65597e5 0.69870e5 1.94305e5 0.69870e5 1.98907e5 0.46270e5 0.46270e5 0.64354e5' # Titanium,2,0Pa，不可行
+    C_ijkl = '1.27e5 0.708e5 0.708e5 1.27e5 0.708e5 1.27e5 0.7355e5 0.7355e5 0.7355e5'
     fill_method = symmetric9
     euler_angle_provider = euler_angle_file
   [../]
@@ -194,24 +192,18 @@
     type = DirichletBC
     variable = disp_y
     boundary = top
-    value = 30.0
+    value = 30
+  [../]
+  [./x_anchor]
+    type = DirichletBC
+    variable = disp_x
+    boundary = left
+    value = 0.0
   [../]
   [./y_anchor]
     type = DirichletBC
     variable = disp_y
     boundary = bottom
-    value = 0.0
-  [../]
-  # [./right_displacement]
-  #   type = DirichletBC
-  #   variable = disp_x
-  #   boundary = right
-  #   value = 00.0
-  # [../]
-  [./x_anchor]
-    type = DirichletBC
-    variable = disp_x
-    boundary = left
     value = 0.0
   [../]
 []
@@ -220,7 +212,7 @@
   [./Copper]
     type = GBEvolution
     block = 0
-    T = 450 # K
+    T = 500 # K
     wGB = 15 # nm
     GBmob0 = 2.5e-6 # m^4/(Js) from Schoenfelder 1997
     Q = 0.23 # Migration energy in eV
@@ -257,6 +249,14 @@
     type = PerfGraphData
     section_name = "Root"
     data_type = total
+  [../]
+  [./gr1area]
+    type = ElementIntegralVariablePostprocessor
+    variable = gr1
+  [../]
+  [./gr2area]
+    type = ElementIntegralVariablePostprocessor
+    variable = gr2
   [../]
 []
 
@@ -299,4 +299,5 @@
 [Outputs]
   file_base = poly3
   exodus = true
+  csv = true
 []

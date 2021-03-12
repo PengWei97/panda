@@ -114,11 +114,14 @@
 
 [Kernels]
   [./PolycrystalKernel]
+  # ACGrGrPoly<--ACGrGrBase<--ACBulk
   [../]
   [./PolycrystalElasticDrivingForce]
   # PolycrystalElasticDrivingForceAction：Action that addes the elastic driving force for each order parameter
   # ACGrGrElasticDrivingForce，Adds elastic energy contribution to the Allen-Cahn equation
     # D_tensor_name：The elastic tensor derivative ，Stiffness Tensor
+    # 多少个序参数,就创建多少个kernel
+    # ACBulk<--ACGrGrElasticDrivingForce
   [../]
   [./TensorMechanics]
     use_displaced_mesh = true

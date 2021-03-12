@@ -35,7 +35,7 @@
 [ICs]
   [./PolycrystalICs]
     [./BicrystalCircleGrainIC]
-      radius = 150
+      radius = 100
       x = 200
       y = 200
     [../]
@@ -58,23 +58,11 @@
     execute_on = 'initial timestep_begin'
     flood_entity_type = ELEMENTAL
 
-    # C_ijkl = '1.27e5 0.708e5 0.708e5 1.27e5 0.708e5 1.27e5 0.7355e5 0.7355e5 0.7355e5' # copper
-    C_ijkl = '1.94e5 0.655e5 0.698e5 1.94e5 0.698e5 1.98e5 0.4627e5 0.4627e5 0.6435e5' # Titanium,2,0Pa，可行
-    # C_ijkl = '1.94305e5 0.65597e5 0.69870e5 1.94305e5 0.69870e5 1.98907e5 0.46270e5 0.46270e5 0.64354e5' # Titanium,2,0Pa，不可行
+    C_ijkl = '1.27e5 0.708e5 0.708e5 1.27e5 0.708e5 1.27e5 0.7355e5 0.7355e5 0.7355e5'
     fill_method = symmetric9
     euler_angle_provider = euler_angle_file
   [../]
 []
-
-# [ICs]
-#   [./PolycrystalICs]
-#     [./BicrystalCircleGrainIC]
-#       radius = 300
-#       x = 400
-#       y = 0
-#     [../]
-#   [../]
-# []
 
 [AuxVariables]
   [./bnds]
@@ -198,17 +186,17 @@
 []
 
 [BCs]
-  # [./Periodic]
-  #   [./All]
-  #     auto_direction = 'x'
-  #     variable = 'gr0 gr1'
-  #   [../]
-  # [../]
+  [./Periodic]
+    [./All]
+      auto_direction = 'x'
+      variable = 'gr0 gr1'
+    [../]
+  [../]
   [./top_displacement]
     type = DirichletBC
     variable = disp_y
     boundary = top
-    value = 20.0
+    value = 00.0
   [../]
   [./y_anchor]
     type = DirichletBC
@@ -220,7 +208,7 @@
   #   type = DirichletBC
   #   variable = disp_x
   #   boundary = right
-  #   value = 20.0
+  #   value = 0.0
   # [../]
   [./x_anchor]
     type = DirichletBC
