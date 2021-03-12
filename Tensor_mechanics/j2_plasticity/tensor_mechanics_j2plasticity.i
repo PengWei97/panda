@@ -16,8 +16,10 @@
   []
   [cnode]
     type = ExtraNodesetGenerator
+    # Creates a new node set and a new boundary made with the nodes the user provides.
     coord = '0.0 0.0 0.0'
     new_boundary = 6
+    # In 3D, back = 0, bottom = 1, right = 2, top = 3, left = 4, front = 5
     input = generated_mesh
   []
   [snode]
@@ -55,6 +57,7 @@
     type = FiniteStrainPlasticMaterial
     block=0
     yield_stress='0. 445. 0.05 610. 0.1 680. 0.38 810. 0.95 920. 2. 950.'
+    # Associative J2 plasticity with isotropic hardening.
   [../]
   [./elasticity_tensor]
     type = ComputeElasticityTensor
