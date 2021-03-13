@@ -11,6 +11,13 @@
   uniform_refine = 2
 []
 
+[Functions]
+  [./topfunc]
+    type = ParsedFunction
+    value = 't'
+  [../]
+[]
+
 [GlobalParams]
   op_num = 8
   var_name_base = gr
@@ -211,16 +218,22 @@
       variable = 'gr0 gr1 gr2 gr3 gr4 gr5 gr6 gr7'
     [../]
   [../]
-  [./top_displacement]
-    type = DirichletBC
+  # [./top_displacement]
+  #   type = DirichletBC
+  #   variable = disp_y
+  #   boundary = top
+  #   value = -50.0
+  # [../]
+  [./top]
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = top
-    value = -50.0
+    function = topfunc
   [../]
   [./x_anchor]
     type = DirichletBC
     variable = disp_x
-    boundary = 'left right'
+    boundary = left
     value = 0.0
   [../]
   [./y_anchor]
@@ -232,6 +245,13 @@
 []
 
 [Materials]
+  [./fplastic]
+    type = FiniteStrainPlasticMaterial
+    #<--ComputeStressBase：ComputeStressBase is the base class for stress tensors
+    block = 0
+    yield_stress='0. 445. 0.05 610. 0.1 680. 0.38 810. 0.95 920. 2. 950.'
+    # Associative J2 plasticity with isotropic hardening.
+  [../]
   [./Copper]
     type = GBEvolution
     block = 0
@@ -243,18 +263,18 @@
   [../]
   [./ElasticityTensor]
     type = ComputePolycrystalElasticityTensor
-
+    # <--ComputeElasticityTensorBase
     grain_tracker = grain_tracker
   [../]
   [./strain]
-    type = ComputeSmallStrain
+    type = ComputeFiniteStrain
     block = 0
     displacements = 'disp_x disp_y'
   [../]
-  [./stress]
-    type = ComputeLinearElasticStress
-    block = 0
-  [../]
+  # [./stress]
+  #   type = ComputeLinearElasticStress
+  #   block = 0
+  # [../]
 []
 
 [Postprocessors]
@@ -295,7 +315,8 @@
   nl_rel_tol = 1.0e-7
   
   start_time = 0.0
-  num_steps = 50
+  # dt = 1.5
+  num_steps = 100
   [./TimeStepper]
     type = IterationAdaptiveDT
     dt = 1.5

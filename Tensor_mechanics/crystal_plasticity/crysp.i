@@ -161,6 +161,7 @@
   [../]
   [./elasticity_tensor]
     type = ComputeElasticityTensorCP
+    # Compute an evolving elasticity tensor coupled to a grain growth phase field model.
     block = 0
     C_ijkl = '1.684e5 1.214e5 1.214e5 1.684e5 1.214e5 1.684e5 0.754e5 0.754e5 0.754e5'
     fill_method = symmetric9

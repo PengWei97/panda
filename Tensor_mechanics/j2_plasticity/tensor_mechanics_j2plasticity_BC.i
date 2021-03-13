@@ -84,13 +84,13 @@
 []
 
 [BCs]
-  [./bottom3]
+  [./bottom_disp]
     type = DirichletBC
     variable = z_disp
-    boundary = 0
+    boundary = bottom
     value = 0.0
   [../]
-  [./top]
+  [./top_disp]
     type = FunctionDirichletBC
     variable = z_disp
     boundary = 5

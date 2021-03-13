@@ -11,3 +11,5 @@
 
 ./modules/phase_field/test/tests/GBAnisotropy/test1.i:    [./Tricrystal2CircleGrainsIC]
 
+./test/tests/initial_conditions/HexPolycrystalIC.i:    type = PolycrystalHex                                                                                                              │················
+./test/tests/grain_growth/hex.i:    type = PolycrystalHex   

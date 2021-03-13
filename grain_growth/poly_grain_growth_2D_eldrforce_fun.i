@@ -212,10 +212,10 @@
     [../]
   [../]
   [./top_displacement]
-    type = DirichletBC
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = top
-    value = -50.0
+    function = 'if(t<20,2.5*t,50)'
   [../]
   [./x_anchor]
     type = DirichletBC
